@@ -1,61 +1,18 @@
 language: python
-
-stages:
-  - prechecks
-  - tests-cpython
-  - tests-pypy
-
-# 3.5-dev because of http://bugs.python.org/issue25131
-jobs:
-  include:
-    - stage: prechecks
-      python: 3.6
-      env: TOXENV=pylint
-    - python: 3.6
-      env: TOXENV=docs
-    - python: 3.6
-      env: TOXENV=formatting
-    - python: 3.6
-      env: TOXENV=mypy
-    - stage: tests-cpython
-      python: 3.4
-      env: TOXENV=py34
-    - python: 3.5-dev
-      env: TOXENV=py35
-    - python: 3.6
-      env: TOXENV=py36
-    - python: 3.7
-      env: TOXENV=py37
-      dist: xenial
-    - python: 3.8-dev
-      env: TOXENV=py38
-      dist: xenial
-      sudo: true
-    - python: 3.6
-      env: TOXENV=spelling
-    - stage: tests-pypy
-      python: pypy3.5-5.8.0
-      env: TOXENV=pypy
-before_install:
-  - python --version
-  - uname -a
-  - lsb_release -a
-  - sudo apt-get -qq update
-  - sudo apt-get install -y enchant
+python:
+  - "3.6"
+  
 install:
-  - pip install -U setuptools
-  - pip install tox coverage coveralls
-  - virtualenv --version
-  - easy_install --version
-  - pip --version
-  - tox --version
-  - coverage --version
+  - pip install codeclimate-test-reporter
+  - pip install coveralls
+  
+after_success:
+  - coveralls
+  - codeclimate-test-reporter
 script:
     # Test install with current version of setuptools
   - pip install .
-  - tox -e coverage-erase,$TOXENV
-after_success:
-  - tox -e coveralls
+  - coverage run --source=pyrabbit setup.py test
 after_failure:
   - more .tox/log/* | cat
   - more .tox/*/log/* | cat
