@@ -6,7 +6,7 @@ python:
   - "3.6"
   
 install:
-  - pip install coverage<=4.4.0
+  - pip install coverage==4.4.0
   - pip install codeclimate-test-reporter
   - pip install coveralls
   
