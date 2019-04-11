@@ -1,3 +1,5 @@
+import sys
+import argparse
 import ast
 from functools import reduce
 
@@ -76,12 +78,8 @@ class Analyzer(ast.NodeVisitor):
         self.generic_visit(node)
 
 
-def main():
-
-    def wrap():
-        pass
-
-    with open("sample.py", "r") as f:
+def analyze(target):
+    with open(target, "r") as f:
         content = f.read()
 
     tree = ast.parse(content)
@@ -89,5 +87,14 @@ def main():
     analyzer.visit(tree)
 
 
+def run(argv):
+    parser = argparse.ArgumentParser()
+    parser.add_argument("target", type=str, help="file to analyze")
+    parser.add_argument("-v", "--verbose", help="increase output verbosity",
+                        action="store_true")
+    args = parser.parse_args(argv)
+    analyze(args.target)
+
+
 if __name__ == '__main__':
-    main()
+    run(sys.argv[1:])
