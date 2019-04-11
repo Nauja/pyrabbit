@@ -75,11 +75,8 @@ class Analyzer(ast.NodeVisitor):
         self.generic_visit(node)
 
 
-def analyze(target):
-    with open(target, "r") as f:
-        content = f.read()
-
-    tree = ast.parse(content)
+def analyze(source):
+    tree = ast.parse(source)
     analyzer = Analyzer()
     analyzer.visit(tree)
 
@@ -90,7 +87,9 @@ def run(argv):
     parser.add_argument("-v", "--verbose", help="increase output verbosity",
                         action="store_true")
     args = parser.parse_args(argv)
-    analyze(args.target)
+
+    with open(args.target, "r") as f:
+        analyze(f.read())
 
 
 if __name__ == '__main__':
