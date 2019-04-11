@@ -10,5 +10,3 @@
 **I strongly believe that rabbits are keepers of the entropy.**
 
 PyRabbit is a Python static code analysis tool to check your code against the [Entropy](https://github.com/Nauja/Entropy) coding standard, measuring entropy and displaying warnings.
-
-Pull requests are most welcome.
