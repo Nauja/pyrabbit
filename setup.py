@@ -14,9 +14,10 @@ def install(**kwargs):
         name="pyrabbit",
         version=__pkginfo__["version"],
         packages=[
-            'pyrabbit'
+            'pyrabbit',
+            'pyrabbit/rules'
         ],
-        test_suite="test",
+        test_suite="pyrabbit.test",
         python_requires=">=3.4.*",
         setup_requires=["pytest-runner"],
         tests_require=["pytest"],

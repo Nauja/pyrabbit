@@ -2,12 +2,9 @@ import sys
 import argparse
 import ast
 from functools import reduce
+from .rules import function
 
 MAX_CALLS = 5
-
-
-def func_entropy(n_calls, max_calls):
-    return max(min(1 - (n_calls / max_calls), 1), 0)
 
 
 def percent(v):
@@ -63,7 +60,7 @@ class Analyzer(ast.NodeVisitor):
         })
         self.generic_visit(node)
         infos = self.stack.pop()
-        entropy = func_entropy(infos["calls"], MAX_CALLS)
+        entropy = function.responsibilities(infos["calls"], MAX_CALLS)
         print("function", node.name)
         print(infos["calls"], "calls")
         print("{}% entropy".format(percent(entropy)))
