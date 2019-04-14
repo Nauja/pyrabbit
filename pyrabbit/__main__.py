@@ -1,3 +1,3 @@
 import pyrabbit
 
-pyrabbit.run()
+pyrabbit.Run()

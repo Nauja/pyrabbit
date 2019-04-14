@@ -3,10 +3,13 @@ import sys
 from .__pkginfo__ import version as __version__
 
 
-def run():
-    from pyrabbit import run
+from .rabbit import *
+
+
+def Run():
+    from . import rabbit
 
     try:
-        pyrabbit.run(sys.argv[1:])
+        rabbit.Run(sys.argv[1:])
     except KeyboardInterrupt:
         sys.exit(1)

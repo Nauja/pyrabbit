@@ -1,6 +1,4 @@
-__all__ = [
-    "responsibilities"
-]
+__all__ = ["responsibilities"]
 
 
 def _clamp(v, a, b):
