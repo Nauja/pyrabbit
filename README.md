@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/Nauja/pysachi.png?branch=master)](https://travis-ci.org/Nauja/pysachi)
 [![Test Coverage](https://codeclimate.com/github/Nauja/pysachi/badges/coverage.svg)](https://codeclimate.com/github/Nauja/pysachi/coverage)
 [![Code Climate](https://codeclimate.com/github/Nauja/pysachi/badges/gpa.svg)](https://codeclimate.com/github/Nauja/pysachi)
+[![Docs](https://readthedocs.org/projects/pysachi/badge/)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/Nauja/pysachi/issues)
 
 ## Introduction
