@@ -12,12 +12,12 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../pyrabbit'))
+sys.path.insert(0, os.path.abspath('../pysachi'))
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'PyRabbit'
+project = 'PySachi'
 copyright = '2019, Jeremy Morosi'
 author = 'Jeremy Morosi'
 

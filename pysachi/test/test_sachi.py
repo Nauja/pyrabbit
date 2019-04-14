@@ -1,5 +1,5 @@
 import unittest
-from pyrabbit import rabbit
+from pysachi import rabbit
 
 SCRIPT = """
 class User:

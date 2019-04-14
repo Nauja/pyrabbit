@@ -1,5 +1,5 @@
 import unittest
-from pyrabbit.rules import function
+from pysachi.rules import function
 
 
 class TestRulesFunction(unittest.TestCase):

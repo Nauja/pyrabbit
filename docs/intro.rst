@@ -1,11 +1,11 @@
 .. -*- coding: utf-8 -*-
-.. currentmodule:: PyRabbit
+.. currentmodule:: PySachi
 
 ==============
  Introduction
 ==============
 
-PyRabbit is a Python static code analysis tool to check your code against the Entropy_ coding standard, measuring entropy and displaying warnings.
+PySachi is a Python static code analysis tool to check your code against the Entropy_ coding standard, measuring entropy and displaying warnings.
 
 .. _Entropy: https://github.com/Nauja/Entropy
 

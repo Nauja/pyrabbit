@@ -15,7 +15,7 @@ before_script:
 script:
     # Test install with current version of setuptools
   - pip install .
-  - coverage run --source=pyrabbit setup.py test
+  - coverage run --source=pysachi setup.py test
 after_failure:
   - more .tox/log/* | cat
   - more .tox/*/log/* | cat

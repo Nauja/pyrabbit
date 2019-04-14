@@ -1,3 +1,0 @@
-import pyrabbit
-
-pyrabbit.Run()

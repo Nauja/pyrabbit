@@ -1,17 +1,17 @@
 .. -*- coding: utf-8 -*-
 
 ===============
-PyRabbit API
+PySachi API
 ===============
 
-.. module:: PyRabbit
+.. module:: PySachi
 
 .. contents::
    :local:
 
-pyrabbit Module
+pysachi Module
 ---------------
 
-.. autofunction:: pyrabbit.run
-.. autofunction:: pyrabbit.analyze
-.. autofunction:: pyrabbit.render
+.. autofunction:: pysachi.run
+.. autofunction:: pysachi.analyze
+.. autofunction:: pysachi.render

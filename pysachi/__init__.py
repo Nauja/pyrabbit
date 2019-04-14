@@ -3,13 +3,13 @@ import sys
 from .__pkginfo__ import version as __version__
 
 
-from .rabbit import *
+from .sachi import *
 
 
 def Run():
-    from . import rabbit
+    from . import sachi
 
     try:
-        rabbit.Run(sys.argv[1:])
+        sachi.Run(sys.argv[1:])
     except KeyboardInterrupt:
         sys.exit(1)

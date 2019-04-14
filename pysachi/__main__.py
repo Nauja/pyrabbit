@@ -1,0 +1,3 @@
+import pysachi
+
+pysachi.Run()

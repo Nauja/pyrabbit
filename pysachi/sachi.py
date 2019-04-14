@@ -73,7 +73,7 @@ def run(
 
     .. code-block:: python
 
-        pyrabbit.run(["/input/path"], output="/output/path")
+        pysachi.run(["/input/path"], output="/output/path")
 
     Here is an example of how to pass your own `analyze` method to
     handle `targets` of custom type. The `load` lambda is called for
@@ -83,7 +83,7 @@ def run(
 
         def analyze_string(targets, **kwargs):
             # load simply return the target
-            return pyrabbit.analyze(
+            return pysachi.analyze(
                 targets,
                 load=lambda target: target,
                 **kwargs
@@ -94,7 +94,7 @@ def run(
             pass
         '''
 
-        pyrabbit.run([source], analyze=analyze_string, output="/output/path")
+        pysachi.run([source], analyze=analyze_string, output="/output/path")
 
     Example for modules using :class:`inspect` to get source code of a module:
 
@@ -103,13 +103,13 @@ def run(
         import inspect
 
         def analyze_module(targets, **kwargs):
-            return pyrabbit.analyze(
+            return pysachi.analyze(
                 targets,
                 load=lambda target: inspect.getsource(target),
                 **kwargs
             )
 
-        pyrabbit.run([pyrabbit], analyze=analyze_module, output="/output/path")
+        pysachi.run([pysachi], analyze=analyze_module, output="/output/path")
 
     :param targets: List of targets to analyze.
     :param render: Custom analyze method or :meth:`analyze` (default).

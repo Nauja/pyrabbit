@@ -4,20 +4,20 @@ import os
 base_dir = os.path.dirname(__file__)
 
 __pkginfo__ = {}
-with open(os.path.join(base_dir, "pyrabbit", "__pkginfo__.py")) as f:
+with open(os.path.join(base_dir, "pysachi", "__pkginfo__.py")) as f:
     exec(f.read(), __pkginfo__)
 
 
 def install(**kwargs):
     """setup entry point"""
     return setup(
-        name="pyrabbit",
+        name="pysachi",
         version=__pkginfo__["version"],
         packages=[
-            'pyrabbit',
-            'pyrabbit/rules'
+            'pysachi',
+            'pysachi/rules'
         ],
-        test_suite="pyrabbit.test",
+        test_suite="pysachi.test",
         python_requires=">=3.4.*",
         setup_requires=["pytest-runner"],
         tests_require=["pytest"],

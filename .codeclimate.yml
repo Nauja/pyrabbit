@@ -6,7 +6,7 @@ engines:
       - python
 ratings:
   paths:
-  - pyrabbit
+  - pysachi
   - "**.py"
 exclude_paths:
 - test
