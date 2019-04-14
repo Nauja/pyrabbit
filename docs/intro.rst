@@ -15,5 +15,11 @@ PySachi is a Python static code analysis tool to check your code against the Ent
 Installation
 ------------
 
+You can install, upgrade, uninstall ``pysachi`` with these commands::
+
+  $ pip install pysachi
+  $ pip install --upgrade pysachi
+  $ pip uninstall pysachi
+
 Example usage and output
 ------------------------
