@@ -1,5 +1,5 @@
 import unittest
-from pysachi import rabbit
+import pysachi
 
 SCRIPT = """
 class User:
@@ -26,10 +26,10 @@ class Operation:
 """
 
 
-class TestRabbit(unittest.TestCase):
-    def test_rabbit(self):
+class TestSachi(unittest.TestCase):
+    def test_sachi(self):
         try:
-            rabbit.analyze(SCRIPT)
+            pysachi.analyze(SCRIPT)
         except Exception as _:
             self.assertFalse(True)
             raise
