@@ -29,7 +29,7 @@ class Operation:
 class TestSachi(unittest.TestCase):
     def test_sachi(self):
         try:
-            pysachi.analyze(SCRIPT)
+            pysachi.analyze([SCRIPT], load=lambda _: _)
         except Exception as _:
             self.assertFalse(True)
             raise

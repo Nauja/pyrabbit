@@ -1,4 +1,4 @@
-__all__ = ["run", "walk", "analyze", "render", "load_file"]
+__all__ = ["run", "walk", "analyze", "render"]
 import sys
 import argparse
 import ast
@@ -16,12 +16,15 @@ def walk(tree: ast.AST) -> report.ASTReport:
     return DefaultAnalyzer().visit(tree)
 
 
-def load_file(filename: str) -> str:
+def read_file(filename: str, *, verbose: Optional[bool] = False) -> str:
     """Simply read content of a file.
 
-    :param str filename: File to read.
+    :param filename: File to read.
+    :param verbose: Verbosity level.
     :returns: File's content.
     """
+    if verbose:
+        print("Process", target)
     with open(filename, "r"):
         return filename.read()
 
@@ -29,28 +32,51 @@ def load_file(filename: str) -> str:
 def analyze(
     targets: List[Any],
     *,
-    load: Callable[[Any], Any] = None,
+    load: Callable[[Any, Optional[bool]], Any] = None,
     verbose: Optional[bool] = False
 ) -> report.Report:
-    """Run static code analysis on files.
-    """
-    load = load or load_file
+    """Run static code analysis on multiple target.
 
-    def _analyze(target):
-        """
-        Analyze a single file and report results.
-        """
-        with open(target, "r") as f:
+    By default `targets` is expected to be a list of files to analyze.
+    You can use this function as is to create a report from a file:
+
+    .. code-block:: python
+
+        report = pysachi.analyze(["/some/path"])
+
+    You can pass your own `load` callable for targets of custom type.
+    Here is the signature of this callable alongside with an example of using it
+    to return source code of a module:
+
+    .. code-block:: python
+
+        import inspect
+
+        def get_module_sources(target, *, verbose=False):
             if verbose:
-                print("Process", target)
-            return walk(ast.parse(f.read()))
+                print("Analyzing", target, "module")
+            return inspect.getsource(target)
+
+        report = pysachi.analyze([pysachi], load=get_module_sources)
+
+    :param targets: List of targets to analyze.
+    :param load: A callable to convert targets to :obj:`str`.
+    :param verbose: Verbosity level.
+    :returns: Complete report of static code analysis.
+    """
+    load = load or read_file
+
+    def _analyze(target: Any) -> report.Report:
+        """
+        Convert target to :class:`ast.AST` and run analysis.
+        """
+        tree = ast.parse(load(target, verbose=verbose))
+        return walk(tree)
 
     return report.Report([_analyze(_) for _ in targets])
 
 
-def render(
-    report: report.Report, *, renderer=None, verbose: Optional[bool] = False
-):
+def render(report: report.Report, *, renderer=None, verbose: Optional[bool] = False):
     """Render a report.
 
     Report is written to stdout is output is omitted.
@@ -110,6 +136,8 @@ def run(
             )
 
         pysachi.run([pysachi], analyze=analyze_module, output="/output/path")
+
+    See also :meth:`analyze` for more informations on `load` parameter.
 
     :param targets: List of targets to analyze.
     :param render: Custom analyze method or :meth:`analyze` (default).
