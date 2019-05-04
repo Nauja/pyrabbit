@@ -15,7 +15,8 @@ def install(**kwargs):
         version=__pkginfo__["version"],
         packages=[
             'pysachi',
-            'pysachi/rules'
+            'pysachi/rules',
+            'pysachi/checkers'
         ],
         test_suite="pysachi.test",
         python_requires=">=3.4.*",

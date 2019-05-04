@@ -1,39 +1,49 @@
-__all__ = ["run", "walk", "analyze", "render"]
+__all__ = ["run", "walk", "analyze", "render", "get_checkers"]
 import sys
 import argparse
 import ast
 from . import report
+from . import checkers
 from .analyzer import DefaultAnalyzer
 from typing import List, Optional, Callable, Any
+import json
 
 
-def walk(tree: ast.AST) -> report.ASTReport:
+def get_checkers() -> List[Any]:
+    """Get default checkers to run on code.
+
+    :returns: List of default checkers to run.
+    """
+    return [checkers.function, checkers.readability]
+
+
+def walk(tree: ast.AST, *, checkers: Optional[List[Any]] = None) -> report.ASTReport:
     """Run static code analysis over an :class:`ast.AST` node.
 
     :param tree: The node to analyze.
+    :param checkers: List of checks to run on node.
     :returns: A complete report of analysis.
     """
-    return DefaultAnalyzer().visit(tree)
+    analyzer = DefaultAnalyzer(checkers)
+    analyzer.visit(tree)
+    return analyzer.report
 
 
-def read_file(filename: str, *, verbose: Optional[bool] = False) -> str:
+def _read_file(filename: str) -> str:
     """Simply read content of a file.
 
     :param filename: File to read.
-    :param verbose: Verbosity level.
     :returns: File's content.
     """
-    if verbose:
-        print("Process", target)
-    with open(filename, "r"):
-        return filename.read()
+    with open(filename, "r") as f:
+        return f.read()
 
 
 def analyze(
     targets: List[Any],
     *,
     load: Callable[[Any, Optional[bool]], Any] = None,
-    verbose: Optional[bool] = False
+    checkers: Optional[List[Any]] = None
 ) -> report.Report:
     """Run static code analysis on multiple target.
 
@@ -52,44 +62,46 @@ def analyze(
 
         import inspect
 
-        def get_module_sources(target, *, verbose=False):
-            if verbose:
-                print("Analyzing", target, "module")
+        def get_module_sources(target):
             return inspect.getsource(target)
 
         report = pysachi.analyze([pysachi], load=get_module_sources)
 
     :param targets: List of targets to analyze.
     :param load: A callable to convert targets to :obj:`str`.
-    :param verbose: Verbosity level.
+    :param checkers: List of checks to run on node.
     :returns: Complete report of static code analysis.
     """
-    load = load or read_file
+    load = load or _read_file
 
-    def _analyze(target: Any) -> report.Report:
+    def _analyze(target: Any) -> report.ASTReport:
         """
         Convert target to :class:`ast.AST` and run analysis.
         """
-        tree = ast.parse(load(target, verbose=verbose))
-        return walk(tree)
+        tree = ast.parse(load(target))
+        return walk(tree, checkers=checkers)
 
-    return report.Report([_analyze(_) for _ in targets])
+    return report.Report(
+        targets,
+        [_analyze(_) for _ in targets]
+    )
 
 
-def render(report: report.Report, *, renderer=None, verbose: Optional[bool] = False):
+def render(report: report.Report, *, renderer=None):
     """Render a report.
 
     Report is written to stdout is output is omitted.
     """
+    return json.dumps(report)
 
 
 def run(
     targets: List[Any],
     *,
+    checkers: Optional[List[Any]] = None,
     analyze: Callable[[Any, Optional[bool]], report.Report] = analyze,
     render: Callable[[report.Report, Optional[bool]], None] = render,
-    output: Optional[str] = None,
-    verbose: Optional[bool] = False
+    output: Optional[str] = None
 ):
     """Run static code analysis on multiple targets and output report to file.
 
@@ -140,29 +152,30 @@ def run(
     See also :meth:`analyze` for more informations on `load` parameter.
 
     :param targets: List of targets to analyze.
+    :param checkers: List of checks to run on node.
     :param render: Custom analyze method or :meth:`analyze` (default).
     :param render: Custom render method or :meth:`render` (default).
     :param output: File to write report to.
-    :param verbose: Verbosity level.
     """
-    result = render(analyze(targets, verbose=verbose), verbose=verbose)
+    checkers = checkers or get_checkers()
+
+    result = render(
+        analyze(targets, checkers=checkers)
+    )
 
     if output:
         with open(output, "w") as f:
             f.write(result)
     else:
-        print(result)
+        print(result, end='')
 
 
 def Run(argv):
     """Run from command line.
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("targets", type=str, nargs="+", help="file to analyze")
+    parser.add_argument("targets", type=str, nargs="+", help="files to analyze")
     parser.add_argument("-o", "--output", type=str, help="report file")
-    parser.add_argument(
-        "-v", "--verbose", help="increase output verbosity", action="store_true"
-    )
     args = parser.parse_args(argv)
 
     run(args.targets, output=args.output)

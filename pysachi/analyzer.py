@@ -1,60 +1,114 @@
 __all__ = ["DefaultAnalyzer"]
 import ast
-from .rules import function
-from functools import reduce
-
-MAX_CALLS = 5
+from typing import List, Any
+from .report import *
 
 
-def percent(v):
-    return int(v * 100.0)
-
-
-def r1001(node, *, fun, calls, entropy):
-    """Check: Function has too many responsibilities.
-
-    """
-    print(
-        "{}:{}@R1001:{}:{}:{}".format(node.lineno, node.col_offset, fun, calls, entropy)
-    )
-
-
-class DefaultAnalyzer(ast.NodeVisitor):
+class Stack:
     def __init__(self):
-        self.stack = []
-
-    def __call__(self, target):
-        pass
+        self._stack = []
 
     @property
-    def _depth(self):
-        return len(self.stack)
+    def depth(self):
+        return len(self._stack)
 
     @property
-    def _peek(self):
-        return self.stack[self._depth - 1] if self._depth > 0 else None
+    def parent(self):
+        return self.at(self.depth - 2)
+
+    def _push(self, item):
+        self._stack.append(item)
+
+    def pop(self):
+        return self._stack.pop()
+
+    @property
+    def peek(self):
+        return self._stack[self.depth - 1] if self.depth > 0 else None
+
+    def at(self, index):
+        return self._stack[index] if self.depth > index else None
+
+
+class DefaultAnalyzer(ast.NodeVisitor, Stack):
+    """An analyzer holds a list of checkers to run
+    on the :class:`ast.AST` tree while visiting its nodes.
+
+    A checker can be a module or class defining the same
+    functions as :class:`ast.NodeVisitor` but with the instance
+    of this `analyzer` for additional parameter.
+
+    .. code-block:: python
+
+        # ast.NodeVisitor function
+        def visit_Foo(self, node):
+            pass
+
+        # checker function
+        def visit_Foo(self, analyzer, node):
+            pass
+    """
+    def __init__(self, checkers: List[Any]) -> None:
+        super().__init__()
+        self._checkers = checkers
+        self._report: ASTReport = None
+
+    @property
+    def report(self) -> ASTReport:
+        return self._report
+
+    def _visit_with_context(self, node: ast.AST, fun: str) -> None:
+        """Wrap the visit of a node inside of a context.
+
+        `fun` is the name of the function to call on checkers
+        for this node.
+
+        This is equivalent to calling `pre_fun` on all checkers
+        before visiting the node and `post_fun` after; letting
+        them perform operations both before and after visiting
+        the node.
+
+        The `fun` method of a checker can either return a
+        context on which `__enter__` and `__exit__` will be
+        called or :obj:`None` meaning that it doesn't need to
+        be called after visiting the node.
+
+        :param fun: Name of an :class:`ast.NodeVisitor` function.
+        :param node: Node to visit.
+        """
+        ctxs = [
+            getattr(_, fun)(_, self, node) for _ in self._checkers if hasattr(_, fun)
+        ]
+        for _ in ctxs:
+            if _ and hasattr(_, "__enter__"):
+                _.__enter__()
+        self.generic_visit(node)
+        for _ in ctxs:
+            if _ and hasattr(_, "__exit__"):
+                _.__exit__()
+
+    def visit_Module(self, node):
+        self._report = ASTReport()
+
+        self._push(self._report)
+        self._visit_with_context(node, "visit_Module")
+        self.pop()
 
     def visit_ClassDef(self, node):
-        self.stack.append({"type": "class", "functions": []})
-        self.generic_visit(node)
-        infos = self.stack.pop()
-        entropy = reduce(lambda x, y: x * y, infos["functions"])
-        print("class", node.name)
-        print(len(infos["functions"]), "functions")
-        print("{}% entropy".format(percent(entropy)))
-        print()
+        report = ClassReport(node.lineno)
+        self.peek.classes.append(report)
+
+        self._push(report)
+        self._visit_with_context(node, "visit_ClassDef")
+        self.pop()
 
     def visit_FunctionDef(self, node):
-        self.stack.append({"type": "func", "calls": 0})
-        self.generic_visit(node)
-        infos = self.stack.pop()
-        entropy = function.responsibilities(infos["calls"], MAX_CALLS)
-        r1001(node, fun=node.name, calls=infos["calls"], entropy=entropy)
+        report = FunctionReport(node.lineno)
+        self.peek.functions.append(report)
 
-        if len(self.stack) and self._peek["type"] == "class":
-            self._peek["functions"].append(entropy)
+        self._push(report)
+        self._visit_with_context(node, "visit_FunctionDef")
+        self.pop()
 
     def visit_Call(self, node):
-        if self.stack:
-            self._peek["calls"] += 1
-        self.generic_visit(node)
+        self._visit_with_context(node, "visit_Call")

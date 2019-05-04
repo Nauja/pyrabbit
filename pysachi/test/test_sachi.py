@@ -29,10 +29,16 @@ class Operation:
 class TestSachi(unittest.TestCase):
     def test_sachi(self):
         try:
+
             def load_script(target, **kwargs):
                 return target
 
-            pysachi.analyze([SCRIPT], load=load_script)
+            report = pysachi.analyze(
+                [SCRIPT], load=load_script, checkers=pysachi.get_checkers()
+            )
+            pysachi.render(
+                report
+            )
         except Exception as _:
             self.assertFalse(True)
             raise
