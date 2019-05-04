@@ -79,10 +79,7 @@ def analyze(
     """
     get_source = get_source or _read_file
 
-    return walk(
-        ast.parse(get_source(target)),
-        checkers=checkers
-    )
+    return walk(ast.parse(get_source(target)), checkers=checkers)
 
 
 def render(report: report.Report, *, renderer=None) -> str:
@@ -155,7 +152,10 @@ def run(
 
     result = report.Report(
         targets,
-        [analyze(_, checkers=checkers) if analyze else report.ASTReport() for _ in targets]
+        [
+            analyze(_, checkers=checkers) if analyze else report.ASTReport()
+            for _ in targets
+        ],
     )
 
     return render(result) if render else result
@@ -175,7 +175,7 @@ def Run(argv):
         with open(args.output, "w") as f:
             f.write(result)
     else:
-        print(result, end='')
+        print(result, end="")
 
 
 if __name__ == "__main__":

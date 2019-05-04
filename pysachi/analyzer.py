@@ -23,6 +23,7 @@ class DefaultAnalyzer(ast.NodeVisitor, Stack):
         def visit_Foo(self, analyzer, node):
             pass
     """
+
     def __init__(self, checkers: List[Any]) -> None:
         super().__init__()
         self._checkers = checkers

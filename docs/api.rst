@@ -15,3 +15,4 @@ pysachi Module
 .. autofunction:: pysachi.run
 .. autofunction:: pysachi.analyze
 .. autofunction:: pysachi.render
+.. autofunction:: pysachi.walk

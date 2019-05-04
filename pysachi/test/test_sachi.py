@@ -31,8 +31,10 @@ class TestSachi(unittest.TestCase):
         try:
             pysachi.run(
                 [SCRIPT],
-                analyze=lambda target, **kwargs: pysachi.analyze(target, get_source=str, **kwargs),
-                checkers=pysachi.get_checkers()
+                analyze=lambda target, **kwargs: pysachi.analyze(
+                    target, get_source=str, **kwargs
+                ),
+                checkers=pysachi.get_checkers(),
             )
         except Exception as _:
             self.assertFalse(True)

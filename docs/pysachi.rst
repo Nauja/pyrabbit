@@ -6,6 +6,7 @@ Subpackages
 
 .. toctree::
 
+    pysachi.checkers
     pysachi.rules
     pysachi.test
 
@@ -44,10 +45,10 @@ pysachi.sachi module
     :undoc-members:
     :show-inheritance:
 
-pysachi.xml module
-------------------
+pysachi.stack module
+--------------------
 
-.. automodule:: pysachi.xml
+.. automodule:: pysachi.stack
     :members:
     :undoc-members:
     :show-inheritance:

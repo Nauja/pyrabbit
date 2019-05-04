@@ -20,6 +20,14 @@ pysachi.test.test\_rules\_function module
     :undoc-members:
     :show-inheritance:
 
+pysachi.test.test\_rules\_readability module
+--------------------------------------------
+
+.. automodule:: pysachi.test.test_rules_readability
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 pysachi.test.test\_sachi module
 -------------------------------
 
