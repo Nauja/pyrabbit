@@ -2,32 +2,7 @@ __all__ = ["DefaultAnalyzer"]
 import ast
 from typing import List, Any
 from .report import *
-
-
-class Stack:
-    def __init__(self):
-        self._stack = []
-
-    @property
-    def depth(self):
-        return len(self._stack)
-
-    @property
-    def parent(self):
-        return self.at(self.depth - 2)
-
-    def _push(self, item):
-        self._stack.append(item)
-
-    def pop(self):
-        return self._stack.pop()
-
-    @property
-    def peek(self):
-        return self._stack[self.depth - 1] if self.depth > 0 else None
-
-    def at(self, index):
-        return self._stack[index] if self.depth > index else None
+from .stack import Stack
 
 
 class DefaultAnalyzer(ast.NodeVisitor, Stack):
@@ -55,6 +30,10 @@ class DefaultAnalyzer(ast.NodeVisitor, Stack):
 
     @property
     def report(self) -> ASTReport:
+        """Get the final analysis report.
+
+        :returns: Analysis report.
+        """
         return self._report
 
     def _visit_with_context(self, node: ast.AST, fun: str) -> None:
