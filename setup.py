@@ -18,6 +18,10 @@ def install(**kwargs):
             'pysachi/rules',
             'pysachi/checkers'
         ],
+        entry_points={'pysachi.renderers': [
+            "html = pysachi.renderers.html",
+            "raw = pysachi.renderers.raw"
+        ]},
         test_suite="pysachi.test",
         python_requires=">=3.4.*",
         setup_requires=["pytest-runner"],

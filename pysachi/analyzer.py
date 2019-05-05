@@ -24,18 +24,20 @@ class DefaultAnalyzer(ast.NodeVisitor, Stack):
             pass
     """
 
-    def __init__(self, checkers: List[Any]) -> None:
+    def __init__(self):
         super().__init__()
-        self._checkers = checkers
-        self._report: ASTReport = None
+        self._is_root = True
 
-    @property
-    def report(self) -> ASTReport:
-        """Get the final analysis report.
-
-        :returns: Analysis report.
-        """
-        return self._report
+    def visit(self, *args, checkers: List[Any] = None, **kwargs) -> ASTReport:
+        if self._is_root:
+            self._is_root = False
+            self._checkers = checkers
+            self._report = ASTReport()
+            super().visit(*args, **kwargs)
+            self._is_root = True
+            return self._report
+        else:
+            super().visit(*args, **kwargs)
 
     def _visit_with_context(self, node: ast.AST, fun: str) -> None:
         """Wrap the visit of a node inside of a context.
@@ -68,8 +70,6 @@ class DefaultAnalyzer(ast.NodeVisitor, Stack):
                 _.__exit__()
 
     def visit_Module(self, node):
-        self._report = ASTReport()
-
         self._push(self._report)
         self._visit_with_context(node, "visit_Module")
         self.pop()

@@ -29,13 +29,7 @@ class Operation:
 class TestSachi(unittest.TestCase):
     def test_sachi(self):
         try:
-            pysachi.run(
-                [SCRIPT],
-                analyze=lambda target, **kwargs: pysachi.analyze(
-                    target, get_source=str, **kwargs
-                ),
-                checkers=pysachi.get_checkers(),
-            )
+            pysachi.run(SCRIPT)
         except Exception as _:
             self.assertFalse(True)
             raise

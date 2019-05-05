@@ -1,30 +1,15 @@
-__all__ = ["run", "walk", "analyze", "render", "get_checkers"]
+__all__ = ["main", "run", "walk", "analyze", "render"]
+import os
 import sys
 import argparse
 import ast
 from . import report
-from . import checkers
+from .checkers import get_checkers
 from .analyzer import DefaultAnalyzer
+from . import renderers
 from typing import List, Optional, Callable, Any
 import json
-
-
-def _read_file(filename: str) -> str:
-    """Simply read content of a file.
-
-    :param filename: File to read.
-    :returns: File's content.
-    """
-    with open(filename, "r") as f:
-        return f.read()
-
-
-def get_checkers() -> List[Any]:
-    """Get default checkers to run on code.
-
-    :returns: List of default checkers to run.
-    """
-    return [checkers.function, checkers.readability]
+from functools import reduce
 
 
 def walk(tree: ast.AST, *, checkers: Optional[List[Any]] = None) -> report.ASTReport:
@@ -39,144 +24,128 @@ def walk(tree: ast.AST, *, checkers: Optional[List[Any]] = None) -> report.ASTRe
     """
     checkers = checkers if checkers is not None else get_checkers()
 
-    analyzer = DefaultAnalyzer(checkers)
-    analyzer.visit(tree)
-    return analyzer.report
+    return DefaultAnalyzer().visit(tree, checkers=checkers)
 
 
-def analyze(
-    target: Any,
-    *,
-    get_source: Optional[Callable[[Any], str]] = None,
-    checkers: Optional[List[Any]] = None
-) -> report.ASTReport:
-    """Run static code analysis on a target.
+def analyze(source: str, *, checkers: Optional[List[Any]] = None) -> report.ASTReport:
+    """Run static code analysis on a source code.
 
-    By default `target` is expected to be a file to analyze.
-    You can use this function as is to create a report from a file:
+    Example for a file:
 
     .. code-block:: python
 
-        report = pysachi.analyze("/some/path/file.py")
+        with open("/some/path/file.py", "r") as f:
+            report = pysachi.analyze(f.read())
 
-    You can pass your own `get_source` callable for custom targets.
-    Here is the signature of this callable alongside with an example of using it
-    to return source code of a module:
+    Example for a module:
 
     .. code-block:: python
 
         import inspect
 
-        def get_module_source(target):
-            return inspect.getsource(target)
+        report = pysachi.analyze(inspect.getsource(target))
 
-        report = pysachi.analyze(pysachi, get_source=get_module_source)
-
-    :param targets: List of targets to analyze.
-    :param get_source: A callable to convert a target to source code.
-    :param checkers: List of checks to run on node.
-    :returns: Reports of static code analysis for all targets.
+    :param source: Source code to analyze.
+    :param checkers: List of checks to run on source code.
+    :returns: Analysis report.
     """
-    get_source = get_source or _read_file
-
-    return walk(ast.parse(get_source(target)), checkers=checkers)
+    return walk(ast.parse(source), checkers=checkers)
 
 
-def render(report: report.Report, *, renderer=None) -> str:
-    """Render a report as :obj:`str`.
+def render(report: report.ASTReport, *, renderer: str = None) -> str:
+    """Render an :class:`report.ASTReport` to :obj:`str`.
 
+    To use the default renderer `raw`:
+
+    .. code-block:: python
+
+        result = pysachi.render(report)
+
+    To use a specific renderer:
+
+    .. code-block:: python
+
+        result = pysachi.render(report, renderer="html")
+
+    Specified renderer will be loaded using `pkg_resources` and must
+    have been registered as a `pysachi.renderers` entry point
+    via setuptools for it to work. Fallback to `raw` renderer if
+    the specified renderer can't be found.
+
+    :param report: Analysis report.
+    :param renderer: Name of renderer registered as entry point for `pysachi.renderers`.
+    :returns: Rendered analysis report.
     """
-    return json.dumps(report)
+    renderer = renderers.load(renderer or "raw")
+
+    if not renderer:
+        renderer = renderers.load("raw")
+
+    return renderer.render(report)
 
 
 def run(
-    targets: List[Any],
-    *,
-    checkers: Optional[List[Any]] = None,
-    analyze: Optional[Callable[[Any], report.ASTReport]] = analyze,
-    render: Optional[Callable[[report.Report], Any]] = render
-) -> Any:
-    """Run static code analysis on multiple targets and render analysis report.
+    source: str, *, checkers: Optional[List[Any]] = None, renderer: str = None
+) -> str:
+    """Run static code analysis on a source code.
 
-    By default `targets` must be a list of files to analyze. You
-    can use this function as is to get report from a specific file:
+    This is a shortcut for:
 
     .. code-block:: python
 
-        report = pysachi.run(["/some/path/file.py"])
+        report = pysachi.analyze(source)
+        result = pysachi.render(report)
 
-    Here is an example of how to pass your own `analyze` method to
-    handle `targets` of custom type. The `get_source` lambda is called for
-    each `target` to convert it to source code to analyze:
-
-    .. code-block:: python
-
-        def analyze_string(target, **kwargs):
-            # get_source simply return the target
-            return pysachi.analyze(target, get_source=str, **kwargs)
-
-        source = '''
-        def foo():
-            pass
-        '''
-
-        report = pysachi.run([source], analyze=analyze_string)
-
-    Example for modules using :class:`inspect` to get source code of a module:
-
-    .. code-block:: python
-
-        import inspect
-
-        def analyze_module(target, **kwargs):
-            return pysachi.analyze(target, get_source=inspect.getsource, **kwargs)
-
-        report = pysachi.run([pysachi], analyze=analyze_module)
-
-    See also :meth:`analyze` for more informations on `get_source` parameter.
-
-    By default, `run` returns the report processed by `render` parameter. It
-    can be disabled to get the raw report as this:
-
-    .. code-block:: python
-
-        raw_report = pysachi.run(["/some/path/file.py"], render=None)
-
-    :param targets: List of targets to analyze.
-    :param checkers: List of checks to run on node.
-    :param analyze: Custom analyze method or :meth:`analyze` (default).
-    :param render: Custom render method or :meth:`render` (default).
-    :returns: :class:`report.Report` rendered by `render`.
+    :param source: Source code to analyze.
+    :param checkers: List of checkers to run on source code.
+    :param renderer: Name of renderer to use.
+    :returns: Rendered report.
     """
-    targets = targets or []
-
-    result = report.Report(
-        targets,
-        [
-            analyze(_, checkers=checkers) if analyze else report.ASTReport()
-            for _ in targets
-        ],
-    )
-
-    return render(result) if render else result
+    return render(analyze(source, checkers=checkers), renderer=renderer)
 
 
-def Run(argv):
+def main(argv, file: List[str] = None) -> None:
     """Run from command line.
+
+    This is meant to simulate `pysachi` usage from command line:
+
+    .. code-block:: python
+
+        pysachi.main("-o some/file.txt")
+
+    It reads the source code from `sys.stdin` by default but this behavior
+    can be modified like this:
+
+    .. code-block:: python
+
+        with open("some/file.py", "r") as f:
+            pysachi.main("-o some/file.txt", file=f)
+
+
+    :param argv: Command line arguments.
+    :param file: File to read.
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("targets", type=str, nargs="+", help="files to analyze")
-    parser.add_argument("-o", "--output", type=str, help="report file")
+    parser.add_argument(
+        "-r", "--renderer", type=str, default="raw", help="report renderer"
+    )
+    parser.add_argument(
+        "-i", "--input", type=argparse.FileType("r"), help="source file"
+    )
+    parser.add_argument(
+        "-o", "--output", type=argparse.FileType("w"), help="report file"
+    )
     args = parser.parse_args(argv)
 
-    result = run(args.targets)
+    file = file or args.input or sys.stdin
+    source = reduce(lambda a, b: a + b, (line for line in sys.stdin))
+    result = run(source, renderer=args.renderer)
 
     if args.output:
-        with open(args.output, "w") as f:
-            f.write(result)
+        args.output.write(result)
     else:
         print(result, end="")
 
 
 if __name__ == "__main__":
-    Run(sys.argv[1:])
+    main(sys.argv[1:])
